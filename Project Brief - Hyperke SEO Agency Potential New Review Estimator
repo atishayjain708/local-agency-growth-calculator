@@ -1,0 +1,701 @@
+Here is the updated brief, tightened to your constraints and design answers.
+
+---
+
+## Working title
+
+**Local Agency Growth Calculator**
+Live style estimator that shows SEO, PPC and web agencies how many local clients and how much MRR they can realistically add each month with your outbound system.
+
+---
+
+## 1. Purpose and scope
+
+This document is for the dev building v1.
+
+**Goal:**
+Create a multi step, mobile friendly web app that:
+
+* Takes a few simple inputs from an agency owner who sells to local service businesses.
+* Runs a transparent model based on your internal stats per niche.
+* Shows a **range** of expected leads, appointments, clients and MRR.
+* Feels like a **live model backed by your database**, not a static calculator.
+* Ends with a strong CTA to book a call.
+
+No real scraping, no real enrichment, no live mail sending.
+It is a story driven estimator that shows how your engine behaves for their niche.
+
+---
+
+## 2. User and ICP
+
+**User:**
+Owner or decision maker at an agency that sells to local businesses:
+
+* SEO retainers
+* Google Ads management
+* Web design or dev
+* Or full service local marketing
+
+They typically serve niches like plumbers, dentists, roofers, gyms, med spas, etc, in the US or UK.
+
+**Mindset when they use this:**
+
+* Slightly skeptical
+* Curious how you get to 1 to 2 new clients per month
+* Wants concrete numbers and an obvious connection between their inputs and your outputs
+
+---
+
+## 3. Inputs to collect
+
+We are keeping personalization lean. These are the only inputs that affect math or copy.
+
+1. **Target industry**
+
+   * Example: plumbers, dentists, electricians.
+
+2. **Agency service type**
+
+   * Options: SEO, Google Ads, Website design or development, Multi service, Other.
+   * Used only for copy and framing, not for math.
+
+3. **Case study strength**
+
+   * No clients yet in this niche
+   * Some clients with decent results
+   * Strong proven case studies
+   * Optional free text result example.
+
+4. **Pricing range per client**
+
+   * Low end monthly fee (USD)
+   * High end monthly fee (USD).
+
+5. **Self reported close rate on qualified calls**
+
+   * Slider or segmented control: 10 percent, 20 percent, 30 percent, 40 percent.
+   * Default 20 percent if they skip.
+
+6. **Prospects per month (your volume)**
+
+   * Slider, default 10k, limited by industry TAM.
+
+7. **Sales capacity per month**
+
+   * “How many new sales calls can you realistically handle per month”
+   * Slider 4 to 40, default 10.
+
+Everything else is derived.
+
+---
+
+## 4. High level flow
+
+Multi step wizard, optimized for mobile. One “primary” input per screen, with minimal extra taps.
+
+1. Landing and intro
+2. Industry and service type
+3. Industry size confirmation
+4. Case study strength
+5. Pricing range
+6. Self reported close rate
+7. Volume slider (prospects per month)
+8. Sales capacity
+9. Process visualization
+10. Results and revenue summary (with “how we calculated this” breakdown)
+11. Book a call CTA
+
+---
+
+## 5. Screen by screen spec
+
+### 5.1 Screen 0 – Landing
+
+**Goal:** Tell them what this is and get them to click Start.
+
+**Content:**
+
+* Headline:
+  “See how many new local clients you can realistically add each month.”
+
+* Sub text:
+  “In 2 to 3 minutes, we will run your niche through our outbound dataset and show you a realistic range of leads, appointments and clients, based on your pricing and close rate.”
+
+**UI:**
+
+* Primary button: `Start the calculator`
+* Progress indicator appears after they start (for example step dots along top).
+
+Action: click → Screen 1.
+
+---
+
+### 5.2 Screen 1 – Industry and service type
+
+**Goal:** Capture niche and what they sell.
+
+**Inputs:**
+
+1. Autocomplete text input:
+
+   * Label: `Which local niche do you want more clients from first`
+   * Suggestions from industry CSV: plumbers, dentists, HVAC, roofers, etc.
+   * Free text allowed, mark as `custom_industry` if not in list.
+
+2. Small segmented control under field (one tap):
+
+   * Label: `What do you mainly sell to them`
+   * Options: SEO, Google Ads, Website design or dev, Multi service, Other.
+
+**Behavior:**
+
+* Autocomplete dropdown on typing, click to select.
+* For unknown industries, use default PCPL values later.
+
+On submit, store:
+
+* `industry_key` or `industry_label`
+* `service_type`.
+
+Next: Screen 2.
+
+---
+
+### 5.3 Screen 2 – Industry size confirmation
+
+**Goal:** Show TAM and get explicit confirmation. Make it feel like database driven.
+
+**Data from CSV per industry:**
+
+* `estimated_business_count`
+* Optional `example_text` such as “across the United States”.
+
+**Display:**
+
+* Title: `Local market size check`.
+
+* Body copy example:
+
+  * “Based on our internal directory data for [Industry], we estimate about **[X] [industry_plural_label]** across your target market.”
+  * “That is plenty of room to run consistent outbound without burning the niche.”
+
+Buttons:
+
+* Primary: `Yes, continue with [Industry]`
+* Secondary text button: `Change industry` (back to Screen 1).
+
+Next: Screen 3.
+
+---
+
+### 5.4 Screen 3 – Case study strength
+
+**Goal:** Adjust expectations based on proof, without forcing long forms.
+
+**Inputs:**
+
+1. Radio options:
+
+   * “No clients yet in this niche”
+   * “Some clients with decent results”
+   * “Strong proven case studies”
+
+2. Optional text area:
+
+   * Label: `Optional: paste one quick result you are proud of for this niche (rankings, leads, revenue etc)`
+   * Not required.
+
+**Logic:**
+
+* Use selection to apply `case_study_multiplier` on PCPL later.
+
+On submit, store:
+
+* `case_study_strength`
+* `case_study_text` (optional).
+
+Next: Screen 4.
+
+---
+
+### 5.5 Screen 4 – Pricing range
+
+**Goal:** Capture their monthly fee per client in that niche.
+
+**Inputs:**
+
+* Numeric: `Typical low end monthly fee per client in this niche (USD)`
+* Numeric: `Typical high end monthly fee per client in this niche (USD)`
+
+Validation:
+
+* Required
+* High must be greater than or equal to low
+* Range sanity, for example 200 to 50000.
+
+On submit, store:
+
+* `price_low`, `price_high`.
+
+Next: Screen 5.
+
+---
+
+### 5.6 Screen 5 – Self reported close rate
+
+**Goal:** Use their own close rate, so the model feels directly based on what they told you.
+
+**Inputs:**
+
+* Slider or segmented control:
+
+  * Label: `When you get a qualified sales call booked, what percent do you usually close`
+  * Options: 10 percent, 20 percent, 30 percent, 40 percent.
+  * Default: 20 percent selected.
+
+Allow override numeric entry if you want, but not required.
+
+On submit, store:
+
+* `close_rate` as decimal, for example 0.2.
+
+Next: Screen 6.
+
+---
+
+### 5.7 Screen 6 – Prospects per month (volume slider)
+
+**Goal:** Let them choose outbound volume, give immediate live estimate ranges, and respect TAM.
+
+**Data from CSV:**
+
+* `estimated_business_count`
+* `pcpl_min`, `pcpl_max` for that industry
+* `starter_volume_default` (for example 10000)
+* Optional `max_suggested_volume`.
+
+**Global constants:**
+
+* `lead_to_appointment_rate = 0.4`
+* `max_touches_per_business = 2`.
+
+**Input:**
+
+* Slider labelled:
+
+  * `How many prospects do you want us to contact each month for this niche`
+
+* Slider config:
+
+  * Minimum: 5000 or 10000 (configurable).
+  * Default: `starter_volume_default` or 10000.
+  * Maximum: `min(50000, estimated_business_count * max_touches_per_business)`.
+
+**Live outputs under slider (update as they move):**
+
+Copy example:
+
+> “With **[prospects_per_month]** [industry_plural_label] contacted per month, our data for [Industry] campaigns suggests:”
+
+* `Leads: [leads_min] to [leads_max] per month`
+* `Booked appointments: [appointments_min] to [appointments_max] per month`
+* `New clients: [clients_min] to [clients_max] per month`
+* A small line: “This is an estimate based on our database, not a guarantee.”
+
+If requested volume exceeds realistic TAM:
+
+* Disable invalid values and show text:
+
+  * “Looks like this niche does not have enough local businesses to safely contact [requested] per month. We should probably talk about neighboring niches. We can cover this on a strategy call.”
+
+On submit, store:
+
+* `prospects_per_month`
+* Calculated `leads_min`, `leads_max`, `appointments_min`, `appointments_max`, `clients_min`, `clients_max` so you do not recompute everywhere.
+
+Next: Screen 7.
+
+---
+
+### 5.8 Screen 7 – Sales capacity
+
+**Goal:** Sanity check that projected appointments match their ability to take calls, so you can speak about throttling or prioritizing.
+
+**Input:**
+
+* Slider:
+
+  * Label: `How many new sales calls can you or your team realistically handle per month`
+  * Min: 4
+  * Max: 40
+  * Default: 10.
+
+On submit, store `capacity_calls_per_month`.
+
+Next: Screen 8.
+
+---
+
+### 5.9 Screen 8 – Process visualization
+
+**Goal:** Show your system in a way that feels like a data driven pipeline, now using their niche and service type.
+
+**Display:**
+
+A four step timeline card, with micro animations if you want.
+
+1. **Scan and build the list**
+
+   * “We map the [Industry] market in our internal directory, niche specific sites and Google Maps style sources, then pull a clean list of **[prospects_per_month] local businesses** that fit your ICP.”
+
+2. **Turn your results into outreach**
+
+   * “We plug your [service_type] case studies into our messaging library for [Industry] and generate campaigns that speak to the outcomes they care about.”
+
+3. **Handle replies and qualify**
+
+   * “Our team handles positive replies, answers questions and calls interested prospects to qualify for budget and urgency, so you only see serious [Industry] owners on your calendar.”
+
+4. **You take the calls and close**
+
+   * “You get a steady stream of qualified sales calls, and we keep feeding the top of the funnel so pipeline is not an issue.”
+
+At bottom:
+
+* “Based on our outbound datasets, most agencies see deals closing over **2 to 12 weeks** from first touch to signed client, depending on deal size and complexity.”
+
+Button: `See your projected revenue` → Screen 9.
+
+---
+
+### 5.10 Screen 9 – Results and revenue summary
+
+**Goal:** Flash the money, keep it credible, and tie everything explicitly to their inputs.
+
+**Use previously calculated and stored values.**
+
+#### 9.1 Headline
+
+“Here is what this can add to your agency each month”
+
+#### 9.2 Input echo line
+
+Short line at top:
+
+> “For a [service_type] agency targeting [industry_plural_label], contacting **[prospects_per_month]** local businesses per month, with your close rate of **[close_rate_percent] percent** and pricing of **$[price_low] to $[price_high] per client**, here is a realistic outcome based on our database.”
+
+#### 9.3 Results blocks
+
+**Block A – Funnel numbers**
+
+* Prospects contacted: **[prospects_per_month] per month**
+* Leads: **[leads_min] to [leads_max] per month**
+* Booked appointments: **[appointments_min] to [appointments_max] per month**
+* New clients signed: **[clients_min] to [clients_max] per month**
+
+  * Subtitle: “Using your close rate of [close_rate_percent] percent on qualified calls.”
+
+Capacity flag:
+
+* If `appointments_max > capacity_calls_per_month * 1.5`:
+
+  Small highlighted note:
+
+  > “You told us you can handle about **[capacity_calls_per_month]** new sales calls per month.
+  > At this volume we expect **[appointments_min] to [appointments_max]**. That is fine, we can throttle or prioritize the strongest opportunities so you are not overwhelmed.”
+
+This positions you as thoughtful, not reckless volume pushers.
+
+**Block B – Revenue impact**
+
+* MRR range:
+
+  > “Based on your pricing of **$[price_low] to $[price_high]** per month per client, this volume can realistically add:”
+  >
+  > **$[mrr_low] to $[mrr_high] in new monthly recurring revenue**,
+  > once the pipeline has ramped and deals from these appointments start to close.
+
+* Annualized:
+
+  > “On a yearly basis that is roughly **$[annual_low] to $[annual_high]** in extra revenue from this niche alone, assuming stable performance.”
+
+Keep numbers aggressive but within the model.
+
+#### 9.4 “How we calculated this” breakdown
+
+Collapsible panel:
+
+Text link: `Show how we calculated these estimates`.
+
+Expanded text should spell out the logic in plain language using their values, for example:
+
+* “You chose **[prospects_per_month]** prospects per month.”
+* “For [Industry], our dataset shows about **1 lead per [pcpl_min_adj] to [pcpl_max_adj] prospects**.”
+* “For this estimate we used a mid point of **1 lead per [pcpl_mid] prospects**.”
+* “So at [prospects_per_month] prospects, that is roughly **[leads_mid] leads per month**.”
+* “About **40 percent** of those leads usually book a call, so that is **[appointments_mid] appointments per month**.”
+* “You told us you close about **[close_rate_percent] percent** of qualified calls, which gives about **[clients_mid] new clients per month**.”
+* “With your pricing of **$[price_low] to $[price_high]**, that is **$[mrr_low] to $[mrr_high]** in new MRR.”
+
+The exact numbers can be your mid points, while you show ranges above.
+
+Include a one line disclaimer:
+
+* “These are estimates from our historical data, not a guarantee for your agency.”
+
+#### 9.5 Call to action
+
+Big bold card at bottom:
+
+* “Want us to walk through these numbers one to one and stress test them for your agency”
+* Button: `Book a strategy call`
+
+On click:
+
+* Open your Calendly or booking URL in new tab.
+* Pass the following as hidden fields or query params if possible:
+
+  * `industry`
+  * `service_type`
+  * `prospects_per_month`
+  * `leads_range`
+  * `appointments_range`
+  * `clients_range`
+  * `price_low`
+  * `price_high`
+  * `close_rate`.
+
+So sales opens the booking and instantly sees what the calculator showed them.
+
+---
+
+## 6. Calculation logic
+
+All logic should live in a utility module so you can test it outside the UI.
+
+### 6.1 Inputs to the calculator
+
+* `industry_config` from CSV or JSON:
+
+  * `estimated_business_count`
+  * `pcpl_min`
+  * `pcpl_max`
+  * `starter_volume_default`
+  * Optional `max_suggested_volume`.
+
+* Global constants:
+
+  * `lead_to_appointment_rate = 0.4`
+  * `max_touches_per_business = 2`
+  * `case_study_multipliers = { none: 1.2, some: 1.0, strong: 0.8 }`
+  * Defaults for industries not in CSV:
+
+    * `default_pcpl_min = 450`
+    * `default_pcpl_max = 650`.
+
+* User inputs:
+
+  * `case_study_strength`
+  * `price_low`, `price_high`
+  * `close_rate` (for example 0.2)
+  * `prospects_per_month`.
+
+### 6.2 Adjusted PCPL
+
+Get base values:
+
+* `pcpl_min_base`, `pcpl_max_base` from industry config, or defaults.
+
+Apply case study multiplier:
+
+* `multiplier = case_study_multipliers[case_study_strength]`
+* `pcpl_min_adj = pcpl_min_base * multiplier`
+* `pcpl_max_adj = pcpl_max_base * multiplier`
+
+Lower PCPL is better performance.
+
+For mid point explanations, you can also compute:
+
+* `pcpl_mid = (pcpl_min_adj + pcpl_max_adj) / 2`.
+
+### 6.3 Lead range
+
+Given `prospects_per_month`:
+
+* `leads_min = round(prospects_per_month / pcpl_max_adj)`
+* `leads_max = round(prospects_per_month / pcpl_min_adj)`
+
+So min uses worst PCPL, max uses best PCPL.
+
+You can also compute `leads_mid` for explanation:
+
+* `leads_mid = round(prospects_per_month / pcpl_mid)`.
+
+### 6.4 Appointment range
+
+Using `lead_to_appointment_rate`:
+
+* `appointments_min = round(leads_min * lead_to_appointment_rate)`
+* `appointments_max = round(leads_max * lead_to_appointment_rate)`
+* `appointments_mid = round(leads_mid * lead_to_appointment_rate)`.
+
+Tune PCPL values per niche so that at 10000 prospects, your default industries land around **8 to 12 appointments**. That is your anchor.
+
+### 6.5 Client range
+
+Using self reported close rate:
+
+* `clients_min = max(1, round(appointments_min * close_rate))`
+* `clients_max = max(1, round(appointments_max * close_rate))`
+* `clients_mid = max(1, round(appointments_mid * close_rate))`.
+
+You can cap or floor these if needed to keep ranges tidy.
+
+### 6.6 MRR range
+
+Using pricing:
+
+* `mrr_low = clients_min * price_low`
+* `mrr_high = clients_max * price_high`
+
+Round to nearest hundred for display.
+
+Annual:
+
+* `annual_low = mrr_low * 12`
+* `annual_high = mrr_high * 12`.
+
+---
+
+## 7. Data model
+
+### 7.1 Industry configuration CSV
+
+Headers:
+
+* `industry_key`
+* `industry_display_name`
+* `industry_plural_label`
+* `estimated_business_count`
+* `pcpl_min`
+* `pcpl_max`
+* `starter_volume_default`
+* `max_suggested_volume` (optional)
+* Optional `notes` or `example_text`.
+
+Convert to JSON at build time or fetch via API.
+
+### 7.2 Global config JSON
+
+Example:
+
+```json
+{
+  "lead_to_appointment_rate": 0.4,
+  "max_touches_per_business": 2,
+  "case_study_multipliers": {
+    "none": 1.2,
+    "some": 1.0,
+    "strong": 0.8
+  },
+  "default_pcpl_min": 450,
+  "default_pcpl_max": 650
+}
+```
+
+---
+
+## 8. Frontend architecture
+
+Assuming React, adjust if you use something else.
+
+### 8.1 State
+
+Single source of truth in a `CalculatorContext` or top level component:
+
+* `industry` (key and label)
+* `service_type`
+* `case_study_strength`, `case_study_text`
+* `price_low`, `price_high`
+* `close_rate`
+* `prospects_per_month`
+* `capacity_calls_per_month`
+* Calculated outputs.
+
+### 8.2 Components
+
+* `WizardLayout`
+
+  * Handles step index, next, back, mobile friendly progress.
+
+* `IndustryStep`
+
+  * Autocomplete plus service type.
+
+* `IndustrySizeStep`
+
+  * Shows TAM and confirm.
+
+* `CaseStudyStep`
+
+  * Radio strength and optional text.
+
+* `PricingStep`
+
+  * Low and high pricing inputs.
+
+* `CloseRateStep`
+
+  * Slider or segmented control.
+
+* `VolumeStep`
+
+  * Slider with live metrics using `calculateOutputs`.
+
+* `CapacityStep`
+
+  * Slider for capacity.
+
+* `ProcessStep`
+
+  * Timeline, pure presentational.
+
+* `ResultsStep`
+
+  * Shows ranges, echo line, breakdown, CTA.
+
+* `CalculatorService`
+
+  * Pure calculation functions, tested separately.
+
+---
+
+## 9. Design and tone guidelines
+
+* **Tone:**
+
+  * Feels like a **serious calculator** backed by data, not a toy.
+  * Copy should clearly say things like “based on our internal datasets for [Industry] campaigns”.
+
+* **Numbers:**
+
+  * Always present **ranges** for leads, appointments, clients and revenue.
+  * Avoid single hard promises.
+
+* **Visuals:**
+
+  * Clean cards, strong hierarchy, big numbers.
+  * Progress indicator visible on all steps.
+  * Primary CTA fixed near bottom for mobile.
+
+* **Mobile first:**
+
+  * Screen width stack, one main choice or slider per view.
+  * Large touch targets, minimal typing.
+  * Keep copy short above the fold, details in collapsible sections.
+
+* **Aggressive ROI copy with guardrails:**
+
+  * Do not shy away from bold ranges like “$9,000 to $36,000 in new MRR”.
+  * Always pair with “based on our historical data, not a guarantee”.

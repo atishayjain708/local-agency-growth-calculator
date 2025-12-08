@@ -1,0 +1,17 @@
+industry_key,industry_display_name,industry_plural_label,estimated_business_count,pcpl_min,pcpl_max,starter_volume_default,max_suggested_volume,example_text
+plumbers,Plumbers,plumbers,75000,400,600,10000,50000,across the United States
+dentists,Dentists,dentists,150000,350,550,10000,50000,across the United States
+hvac,HVAC Contractors,HVAC contractors,65000,420,620,10000,50000,across the United States
+roofers,Roofers,roofers,55000,450,650,10000,50000,across the United States
+electricians,Electricians,electricians,80000,380,580,10000,50000,across the United States
+chiropractors,Chiropractors,chiropractors,70000,400,600,10000,50000,across the United States
+med_spas,Med Spas,med spas,35000,420,620,10000,40000,across the United States
+gyms,Gyms & Fitness Centers,gyms,50000,450,650,10000,50000,across the United States
+lawyers,Lawyers,law firms,180000,380,580,10000,50000,across the United States
+accountants,Accountants,accounting firms,120000,400,600,10000,50000,across the United States
+real_estate_agents,Real Estate Agents,real estate agents,200000,500,700,10000,50000,across the United States
+pest_control,Pest Control,pest control companies,25000,420,620,10000,30000,across the United States
+landscaping,Landscaping,landscaping companies,60000,450,650,10000,50000,across the United States
+auto_repair,Auto Repair Shops,auto repair shops,85000,430,630,10000,50000,across the United States
+contractors,General Contractors,contractors,90000,440,640,10000,50000,across the United States
+
