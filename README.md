@@ -96,6 +96,30 @@ npm run build
 npm start
 ```
 
+## Deployment
+
+### Quick Start
+
+**Local Development:**
+```bash
+npm run dev
+# Visit http://localhost:3000
+```
+
+**Deploy to VPS:**
+```bash
+./deploy-with-auto-port.sh
+# Automatically finds free port, deploys, and starts
+# Visit http://137.74.43.93
+```
+
+**Check Deployment:**
+```bash
+./check-deployed-port.sh
+```
+
+See `DEPLOYMENT.md` for complete deployment guide and `PORT_MANAGEMENT.md` for port management details.
+
 ## Technologies
 
 - **Framework**: Next.js 14 (App Router)
